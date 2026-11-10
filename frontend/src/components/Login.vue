@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { apiRequest } from '@/services/api'
 
 const router = useRouter()
 const email = ref('')
@@ -8,12 +9,8 @@ const password = ref('')
 const errorMessage = ref('')
 const isSubmitting = ref(false)
 
-const demoCredential = {
-  email: 'siswa@student.stembayo.sch.id',
-  password: 'stembayo123'
-}
-
-const handleLogin = () => {
+const handleLogin = async () => {
+  errorMessage.value = ''
   const trimmedEmail = email.value.trim()
   const trimmedPassword = password.value.trim()
 
@@ -33,18 +30,27 @@ const handleLogin = () => {
     return
   }
 
-  if (trimmedEmail !== demoCredential.email || trimmedPassword !== demoCredential.password) {
-    errorMessage.value = 'Akun atau password salah. Gunakan demo account: ' + demoCredential.email + ' / ' + demoCredential.password
-    return
-  }
-
   isSubmitting.value = true
-  localStorage.setItem('isLoggedIn', 'true')
-  localStorage.setItem('loggedInUser', trimmedEmail)
 
-  setTimeout(() => {
+  try {
+    const response = await apiRequest('/login', {
+      method: 'POST',
+      body: JSON.stringify({ email: trimmedEmail, password: trimmedPassword }),
+    })
+
+    if (!response.token) {
+      throw new Error('Backend tidak mengembalikan token login.')
+    }
+
+    localStorage.setItem('authToken', response.token)
+    localStorage.setItem('isLoggedIn', 'true')
+    localStorage.setItem('loggedInUser', trimmedEmail)
     router.push({ path: '/home' })
-  }, 300)
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : 'Login gagal. Silakan coba lagi.'
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 

@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import { QrcodeStream } from 'vue-qrcode-reader'
+import { apiRequest } from '@/services/api'
 import TopBar from '@/components/TopBar.vue'
 import BottomBar from '@/components/BottomBar.vue'
 
@@ -14,88 +15,42 @@ const isSuccessRoute = computed(() => route.name === 'absent-success' || route.p
 const result = ref('')
 const error = ref('')
 const lastScannedCode = ref('')
+const isSubmittingAttendance = ref(false)
 
-const normalizeQrPayload = (rawValue) => {
-    const value = (rawValue || '').trim()
-    const now = new Date()
-    const entry = {
-        id: Date.now(),
-        date: now.toISOString(),
-        time: now.toLocaleString('id-ID', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        }),
-        room: 'Ruang Baca Hening',
-        subject: 'Pelajaran KIK',
-        status: 'Hadir',
-        qrCode: value,
-    }
-
-    if (!value) return entry
-
-    const pairs = value.split(/[;|]/).map((item) => item.trim()).filter(Boolean)
-
-    for (const pair of pairs) {
-        const [key, ...rest] = pair.split('=')
-        const cleanedKey = (key || '').trim().toLowerCase()
-        const cleanedValue = rest.join('=').trim()
-
-        if (!cleanedKey || !cleanedValue) continue
-
-        if (cleanedKey === 'room') entry.room = cleanedValue
-        if (cleanedKey === 'subject' || cleanedKey === 'mapel') entry.subject = cleanedValue
-        if (cleanedKey === 'kelas') entry.className = cleanedValue
-        if (cleanedKey === 'kode') entry.qrCode = cleanedValue
-    }
-
-    return entry
-}
-
-const saveAttendance = (rawValue) => {
-    const attendance = normalizeQrPayload(rawValue)
-    const currentHistory = JSON.parse(localStorage.getItem('attendanceHistory') || '[]')
-    const nextHistory = [attendance, ...currentHistory].slice(0, 30)
-
-    localStorage.setItem('attendanceHistory', JSON.stringify(nextHistory))
-    return attendance
-}
-
-const isLikelyUrl = (value) => {
-    if (!value || typeof value !== 'string') return false
-    return /^https?:\/\//i.test(value) || /^www\./i.test(value)
-}
-
-const onDetect = (detectedCodes) => {
+const onDetect = async (detectedCodes) => {
     const rawValue = detectedCodes?.[0]?.rawValue
 
-    if (!rawValue) return
-
-    if (lastScannedCode.value && rawValue === lastScannedCode.value && result.value) {
+    if (!rawValue || !isHome.value || isSubmittingAttendance.value) return
+    if (lastScannedCode.value === rawValue && result.value) {
         return
     }
 
     lastScannedCode.value = rawValue
-
-    if (isLikelyUrl(rawValue)) {
-        console.log('QR link detected:', rawValue)
-    }
-
-    const attendance = saveAttendance(rawValue)
-    result.value = `Berhasil absen: ${attendance.subject} (${attendance.room})`
+    isSubmittingAttendance.value = true
+    result.value = ''
     error.value = ''
 
-    setTimeout(() => {
+    try {
+        const response = await apiRequest('/absensi', {
+            method: 'POST',
+            token: localStorage.getItem('authToken'),
+            body: JSON.stringify({ qr_code: rawValue }),
+        })
+        if (response.already_recorded) {
+            result.value = response.message
+            return
+        }
+
+        result.value = 'Absensi berhasil dicatat.'
         router.push({
             name: 'absent-success',
-            query: {
-                qr: encodeURIComponent(attendance.qrCode || rawValue),
-                source: 'qr-link'
-            }
         })
-    }, 700)
+    } catch (requestError) {
+        error.value = requestError instanceof Error ? requestError.message : 'Absensi gagal disimpan.'
+        lastScannedCode.value = ''
+    } finally {
+        isSubmittingAttendance.value = false
+    }
 }
 
 const onError = (err) => {

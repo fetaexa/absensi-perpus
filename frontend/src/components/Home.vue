@@ -12,14 +12,13 @@ defineProps({
                     <div v-if="scanError" class="alert alert-danger w-100">
                         {{ scanError }}
                     </div>
+                    <div v-if="scanResult" class="alert alert-success w-100">
+                        {{ scanResult }}
+                    </div>
                     <div style="width: 350px;height: 350px;border-style: dashed;border-width:15px;border-color:transparent;"
                         class="box mb-2 position-absolute"></div>
                 </div>
                 <h3 class="text-center" style="transform: translateY(360px);">Scan kode QR untuk absen</h3>
-                <!-- <div v-if="scanResult" class="mt-4 p-3 bg-light rounded w-100 text-center">
-                    <p class="mb-1 text-muted">Hasil scan:</p>
-                    <strong>{{ scanResult }}</strong>
-                </div> -->
                 
             </div>
         </div>
