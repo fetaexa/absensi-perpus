@@ -6,7 +6,10 @@ const router = useRouter()
 const transitionName = ref('no-transition')
 
 router.beforeEach((to, from) => {
-  if (from.path === '/login' && to.path === '/home') {
+  const isLoginTransition = from.path === '/login' && to.path === '/home'
+  const isLogoutTransition = to.path === '/login' && from.path !== '/login'
+
+  if (isLoginTransition || isLogoutTransition) {
     transitionName.value = 'page-zoom'
   } else {
     transitionName.value = 'no-transition'

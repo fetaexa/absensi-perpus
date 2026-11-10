@@ -1,3 +1,15 @@
+<script setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const handleLogout = () => {
+  localStorage.removeItem('isLoggedIn')
+  localStorage.removeItem('loggedInUser')
+  router.push('/login')
+}
+</script>
+
 <template class="w-100 h-100">
     <div class="d-flex flex-column w-100 h-100 justify-content-between py-2">
         <div class="d-flex justify-content-center w-100">
@@ -20,11 +32,9 @@
             <input id="sekolahSiswa" type="text" class="form-control bg-white w-100 fg-black rounded-pill p-2 ps-4">
         </div>
         <div class="w-100 fg-black my-2 d-flex justify-content-center">
-            <RouterLink to="/login" class="rounded-pill w-25 d-flex justify-content-center">
-                <button class="btn-solid theme-danger px-4 py-2 rounded-pill border-0">
-                    Logout
-                </button>
-            </RouterLink>
+            <button type="button" class="btn-solid theme-danger px-4 py-2 rounded-pill border-0" @click="handleLogout">
+                Logout
+            </button>
         </div>
     </div>
 </template>

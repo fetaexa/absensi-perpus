@@ -20,6 +20,7 @@ defineProps({
                     <p class="mb-1 text-muted">Hasil scan:</p>
                     <strong>{{ scanResult }}</strong>
                 </div> -->
+                
             </div>
         </div>
     </div>
