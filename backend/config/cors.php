@@ -5,6 +5,7 @@ return [
     'allowed_methods' => ['*'],
     'allowed_origins' => [
         'https://fetaexa.github.io',
+        'https://absensi-perpus-ghyhcnecv-aulian2036s-projects.vercel.app',
         'http://localhost:5173',
         'http://127.0.0.1:5173',
     ],
