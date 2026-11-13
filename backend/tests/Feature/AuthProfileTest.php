@@ -116,4 +116,17 @@ class AuthProfileTest extends TestCase
             ->assertNoContent()
             ->assertHeader('Access-Control-Allow-Origin', $origin);
     }
+
+    public function test_vercel_production_origin_is_allowed_to_call_the_api(): void
+    {
+        $origin = 'https://absensi-perpus.vercel.app';
+
+        $this->withHeaders([
+            'Origin' => $origin,
+            'Access-Control-Request-Method' => 'POST',
+            'Access-Control-Request-Headers' => 'content-type',
+        ])->options('/api/login')
+            ->assertNoContent()
+            ->assertHeader('Access-Control-Allow-Origin', $origin);
+    }
 }
