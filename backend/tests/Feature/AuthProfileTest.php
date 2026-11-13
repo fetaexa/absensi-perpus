@@ -88,6 +88,11 @@ class AuthProfileTest extends TestCase
         $this->putJson('/api/profile', ['nama' => 'Siswa'])->assertUnauthorized();
     }
 
+    public function test_browser_request_to_protected_api_returns_unauthorized_instead_of_redirecting_to_web_login(): void
+    {
+        $this->get('/api/profile')->assertUnauthorized();
+    }
+
     public function test_github_pages_origin_is_allowed_to_call_the_api(): void
     {
         $this->withHeaders([

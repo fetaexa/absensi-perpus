@@ -9,5 +9,5 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
-  base: '/absensi-perpus/',
+  base: process.env.VITE_BASE_PATH || '/absensi-perpus/',
 })

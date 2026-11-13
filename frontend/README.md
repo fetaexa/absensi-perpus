@@ -51,6 +51,27 @@ By default, the frontend sends API requests to `http://127.0.0.1:8000/api`.
 GitHub Pages only hosts the frontend, so deploy the Laravel backend separately
 to use login, profile, and attendance features.
 
+#### Cloudflare Workers frontend
+
+The Vite frontend can be deployed as a static-assets Worker:
+
+1. Connect the existing Worker to the `fetaexa/absensi-perpus` GitHub repository
+   under **Worker > Settings > Builds**.
+2. Set the repository root directory to `frontend` and the production branch
+   to `main`.
+3. Use `npm run build` as the build command and `npx wrangler@4 deploy` as the
+   deploy command. The Worker configuration is in `wrangler.jsonc`; its
+   `name` must match the Worker's name in Cloudflare.
+4. Add build variables `VITE_BASE_PATH=/` and
+   `VITE_API_BASE_URL=https://your-backend.example/api`.
+5. After deploy, add the Worker's exact `https://...workers.dev` origin to
+   `allowed_origins` in the Laravel backend's `config/cors.php`, then redeploy
+   the backend.
+
+Cloudflare Workers serves the Vue frontend, not this Laravel backend. Login,
+profile, and attendance still require the Laravel API to be running at the
+configured `VITE_API_BASE_URL`.
+
 #### Free demo deployment (Render + Neon)
 
 Render's free web service sleeps after inactivity, so the first request can
